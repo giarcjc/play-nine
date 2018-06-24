@@ -4,20 +4,21 @@ import { faStar } from '@fortawesome/free-solid-svg-icons'
 import './App.css';
 
 const Star = () => {
-  return (<FontAwesomeIcon icon={faStar} />)
+  return (<FontAwesomeIcon icon={faStar} className='fa-star'/>)
 }
 
 
 const Stars = (props) => {
-	const numberOfStars = 1 + Math.floor(Math.random() * 9);
-  const starArray = [];
-  for (let i=0; i<numberOfStars; i++) {
-    starArray.push(<Star key={i}/>)
-  }
+  const numberOfStars = 1 + Math.floor(Math.random() * 9);
+  const arrayOfStars = Array.from({ length: numberOfStars}, (_, i) => i);
 
   return (
     <div className="col-5">
-			{starArray}
+			{
+        arrayOfStars.map(i => {
+          return (<Star key={i}/>)
+        })
+      }
     </div>
   )
 }
@@ -40,13 +41,18 @@ const Numbers = (props) => {
 	return (
   	<div className="card text-center">
   	  <div>
-  	    <span>1</span>
+  	    { Numbers.list.map((number, i) =>
+            <span key={i}>{number + 1}</span>
+        )
+        }
         <span className="selected">2</span>
         <span className="used">3</span>
   	  </div>
   	</div>
   )
 }
+
+Numbers.list = Array.from({ length: 9}, (_, i) => i);
 
 class Game extends React.Component {
   render() {
