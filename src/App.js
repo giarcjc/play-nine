@@ -1,14 +1,23 @@
 import React, { Component } from 'react';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faStar } from '@fortawesome/free-solid-svg-icons'
 import './App.css';
 
+const Star = () => {
+  return (<FontAwesomeIcon icon={faStar} />)
+}
+
+
 const Stars = (props) => {
+	const numberOfStars = 1 + Math.floor(Math.random() * 9);
+  const starArray = [];
+  for (let i=0; i<numberOfStars; i++) {
+    starArray.push(<Star key={i}/>)
+  }
+
   return (
     <div className="col-5">
-      <i className="fa fa-star"></i>
-      <i className="fa fa-star"></i>
-      <i className="fa fa-star"></i>
-      <i className="fa fa-star"></i>
+			{starArray}
     </div>
   )
 }
@@ -56,7 +65,6 @@ class Game extends React.Component {
     )
   }
 }
-
 class App extends React.Component {
   render() {
     return (
