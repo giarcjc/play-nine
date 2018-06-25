@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faStar, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faStar, faCheck, faTimes, faSyncAlt } from '@fortawesome/free-solid-svg-icons'
 import './App.css';
 
 const Star = () => {
@@ -13,6 +13,10 @@ const Check = () => {
 
 const XTimes = () => {
   return (<FontAwesomeIcon icon={faTimes} className='fa-times'/>)
+}
+
+const Refresh = () => {
+  return (<FontAwesomeIcon icon={faSyncAlt} className='fa-refresh'/>)
 }
 
 
@@ -54,8 +58,14 @@ const Button = (props) => {
   }
 
   return (
-    <div className="col-2"	>
+    <div className="col-2 text-center">
+      <br />
+      <br />
       {button}
+      <button className="btn btn-warning btn-small"
+              onClick={props.redraw}>
+        <Refresh />
+      </button>
     </div>
   )
 }
@@ -143,6 +153,15 @@ class Game extends React.Component {
 
   };
 
+
+  redraw = () => {
+    this.setState(prevState => ({
+      selectedNumbers: [],
+      answerIsCorrect: null,
+      numberOfStars: 1 + Math.floor(Math.random() * 9),
+    }));
+  }
+
   render() {
     const {
         selectedNumbers,
@@ -161,6 +180,7 @@ class Game extends React.Component {
                     checkAnswer={this.checkAnswer}
                     answerIsCorrect={answerIsCorrect}
                     acceptAnswer={this.acceptAnswer}
+                    redraw={this.redraw}
                      />
             <Answer selectedNumbers={selectedNumbers}
                      unselectNumber={this.unselectNumber}/>
