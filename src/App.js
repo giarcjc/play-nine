@@ -73,9 +73,12 @@ const Answer = (props) => {
 
 const Numbers = (props) => {
   const numberClassName = (number) => {
-    if (props.selectedNumbers.indexOf(number) > -1) {
-        return 'selected';
+    if (props.usedNumbers.indexOf(number) > -1) {
+        return 'used';
     }
+    if (props.selectedNumbers.indexOf(number) > -1) {
+      return 'selected';
+  }
   }
 	return (
   	<div className="card text-center">
@@ -97,13 +100,16 @@ class Game extends React.Component {
     selectedNumbers: [],
     numberOfStars: 1 + Math.floor(Math.random() * 9),
     answerIsCorrect: null,
+    usedNumbers: [4,7]
   }
 
   selectNumber = (clickedNumber) => {
     console.log('clickedNumber: ');
     console.log(clickedNumber);
+
     if (this.state.selectedNumbers.indexOf(clickedNumber) > -1 ) { return;}
     this.setState(prevState => ({
+      answerIsCorrect: null,
       selectedNumbers: prevState.selectedNumbers.concat(clickedNumber)
     }));
   };
@@ -111,6 +117,7 @@ class Game extends React.Component {
 
   unselectNumber = (clickedNumber) => {
     this.setState((prevState) => ({
+      answerIsCorrect: null,
       selectedNumbers: prevState.selectedNumbers
                                 .filter(number => number !== clickedNumber)
     }));
@@ -123,11 +130,22 @@ class Game extends React.Component {
     // num stars equals the sum of the selected number values
     this.setState(prevState => ( {
       answerIsCorrect: prevState.numberOfStars === prevState.selectedNumbers.reduce((acc, n) => acc + n, 0)
-    }))
-  }
+    }));
+  };
+
+  acceptAnswer = () => {
+    // usedNumbers
+
+  };
 
   render() {
-    const {selectedNumbers,  numberOfStars, answerIsCorrect} = this.state;
+    const {
+        selectedNumbers,
+        numberOfStars,
+        answerIsCorrect,
+        usedNumbers
+      } = this.state;
+
     return (
       <div className="container">
         <h3>Play Nine</h3>
@@ -142,8 +160,9 @@ class Game extends React.Component {
                      unselectNumber={this.unselectNumber}/>
           </div>
           <br />
-	        <Numbers selectedNumbers={selectedNumbers}
-          selectNumber={this.selectNumber}
+	        <Numbers  selectedNumbers={selectedNumbers}
+                    selectNumber={this.selectNumber}
+                    usedNumbers={usedNumbers}
           />
 			</div>
     )
