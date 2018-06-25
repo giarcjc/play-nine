@@ -20,6 +20,14 @@ const Refresh = () => {
 }
 
 
+const DoneFrame = (props) => {
+  return (
+    <div className="text-center">
+      <h2>{props.doneStatus}</h2>
+    </div>
+    )
+}
+
 const Stars = (props) => {
   const arrayOfStars = Array.from({ length: props.numberOfStars}, (_, i) => i);
 
@@ -115,7 +123,8 @@ class Game extends React.Component {
     numberOfStars: Game.randomNumber(),
     answerIsCorrect: null,
     usedNumbers: [],
-    redraws: 5
+    redraws: 5,
+    doneStatus: 'Game Over!'
   }
 
   selectNumber = (clickedNumber) => {
@@ -178,6 +187,7 @@ class Game extends React.Component {
         answerIsCorrect,
         usedNumbers,
         redraws,
+        doneStatus
       } = this.state;
 
     return (
@@ -197,10 +207,11 @@ class Game extends React.Component {
                      unselectNumber={this.unselectNumber}/>
           </div>
           <br />
-	        <Numbers  selectedNumbers={selectedNumbers}
+          {doneStatus ?  <DoneFrame doneStatus={doneStatus}/> :
+          <Numbers  selectedNumbers={selectedNumbers}
                     selectNumber={this.selectNumber}
                     usedNumbers={usedNumbers}
-          />
+          />}
 			</div>
     )
   }
