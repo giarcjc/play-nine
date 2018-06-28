@@ -1,7 +1,28 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faStar, faCheck, faTimes, faSyncAlt } from '@fortawesome/free-solid-svg-icons'
 import './App.css';
+
+
+
+var possibleCombinationSum = function(arr, n) {
+  if (arr.indexOf(n) >= 0) { return true; }
+  if (arr[0] > n) { return false; }
+  if (arr[arr.length - 1] > n) {
+    arr.pop();
+    return possibleCombinationSum(arr, n);
+  }
+  var listSize = arr.length, combinationsCount = (1 << listSize)
+  for (var i = 1; i < combinationsCount ; i++ ) {
+    var combinationSum = 0;
+    for (var j=0 ; j < listSize ; j++) {
+      if (i & (1 << j)) { combinationSum += arr[j]; }
+    }
+    if (n === combinationSum) { return true; }
+  }
+  return false;
+};
+
 
 const Star = () => {
   return (<FontAwesomeIcon icon={faStar} className='fa-star'/>)
@@ -24,6 +45,11 @@ const DoneFrame = (props) => {
   return (
     <div className="text-center">
       <h2>{props.doneStatus}</h2>
+      <button
+        className="btn btn-secondary"
+        onClick={props.resetGame}>
+          Play Again
+      </button>
     </div>
     )
 }
@@ -72,23 +98,27 @@ const Button = (props) => {
       {button}
       <button className="btn btn-warning btn-small"
               onClick={props.redraw}
-              disabled={props.redraws=== 0}
-              >{props.redraws}
-
+              disabled={props.redraws < 1}>
         <Refresh />
+        <br />
+        {props.redraws}
       </button>
     </div>
   )
 }
 
 const Answer = (props) => {
-    console.log('Answer.. props.selectedNumbers: ');
-    console.log( props.selectedNumbers);
+    // console.log('Answer.. props.selectedNumbers: ');
+    // console.log( props.selectedNumbers);
   return (
     <div className="col-5">
       { props.selectedNumbers.map((number, i) =>
-        <span key={i} onClick={() => {props.unselectNumber(number)}}>{number}</span>
-      )}</div>
+        <span key={i}
+              onClick={() => props.unselectNumber(number)}>
+                {number}
+        </span>
+      )}
+    </div>
   )
 }
 
@@ -99,45 +129,47 @@ const Numbers = (props) => {
     }
     if (props.selectedNumbers.indexOf(number) > -1) {
       return 'selected';
-  }
+    }
   }
 	return (
   	<div className="card text-center">
   	  <div>
   	    { Numbers.list.map((number, i) =>
-          <span key={i} className={numberClassName(number + 1)}
-          onClick={() => props.selectNumber(number + 1)}
-          >{number + 1}</span>
+          <span key={i}
+                className={numberClassName(number)}
+                onClick={() => props.selectNumber(number)}>
+                  {number}
+          </span>
         )}
   	  </div>
   	</div>
   )
 }
 
-Numbers.list = Array.from({ length: 9}, (_, i) => i);
+Numbers.list = [...Array(9).keys()].map(i => i + 1);
 
 class Game extends React.Component {
   static randomNumber = () => 1 + Math.floor(Math.random() * 9);
-  state = {
+  static initialState = () => ({
     selectedNumbers: [],
     numberOfStars: Game.randomNumber(),
     answerIsCorrect: null,
     usedNumbers: [],
     redraws: 5,
-    doneStatus: 'Game Over!'
-  }
+    doneStatus: null
+});
+
+  state = Game.initialState();
+
+  resetGame = () => this.setState(Game.initialState());
 
   selectNumber = (clickedNumber) => {
-    console.log('clickedNumber: ');
-    console.log(clickedNumber);
-
-    if (this.state.selectedNumbers.indexOf(clickedNumber) > -1 ) { return;}
-    this.setState(prevState => ({
-      answerIsCorrect: null,
-      selectedNumbers: prevState.selectedNumbers.concat(clickedNumber)
-    }));
+    if (this.state.selectedNumbers.indexOf(clickedNumber) > -1 ) { return; }
+      this.setState(prevState => ({
+        answerIsCorrect: null,
+        selectedNumbers: prevState.selectedNumbers.concat(clickedNumber)
+      }));
   };
-
 
   unselectNumber = (clickedNumber) => {
     this.setState((prevState) => ({
@@ -148,12 +180,11 @@ class Game extends React.Component {
   };
 
   checkAnswer = () => {
-    console.log('checkAnswer');
-
     // normally we don't place any value that can be calculated on the state, this is demo only
     // num stars equals the sum of the selected number values
     this.setState(prevState => ( {
-      answerIsCorrect: prevState.numberOfStars === prevState.selectedNumbers.reduce((acc, n) => acc + n, 0)
+      answerIsCorrect: prevState.numberOfStars === prevState.selectedNumbers
+        .reduce((acc, n) => acc + n, 0)
     }));
   };
 
@@ -163,7 +194,7 @@ class Game extends React.Component {
       selectedNumbers: [],
       answerIsCorrect: null,
       numberOfStars: Game.randomNumber(),
-    }));
+    }), this.updateDoneStatus);
 
   };
 
@@ -177,7 +208,25 @@ class Game extends React.Component {
       answerIsCorrect: null,
       numberOfStars: Game.randomNumber(),
       redraws: prevState.redraws - 1,
-    }));
+    }), this.updateDoneStatus);
+  }
+
+  possibleSolutions = ({numberOfStars, usedNumbers}) => {
+    const possibleNumbers = [...Array(9).keys()].map(i => i + 1)
+      .filter(number => usedNumbers.indexOf(number) === -1);
+
+    return possibleCombinationSum(possibleNumbers, numberOfStars);
+  };
+
+  updateDoneStatus = () => {
+    this.setState(prevState => {
+      if (prevState.usedNumbers.length === 9) {
+        return { doneStatus: 'Done. Nice!'};
+      }
+      if (prevState.redraws === 0 && !this.possibleSolutions(prevState)) {
+        return { doneStatus: 'Game Over!'}
+      }
+    });
   }
 
   render() {
@@ -200,28 +249,32 @@ class Game extends React.Component {
                     checkAnswer={this.checkAnswer}
                     answerIsCorrect={answerIsCorrect}
                     acceptAnswer={this.acceptAnswer}
-                    redraw={this.redraw}
                     redraws={redraws}
+                    redraw={this.redraw}
+
                      />
             <Answer selectedNumbers={selectedNumbers}
                      unselectNumber={this.unselectNumber}/>
           </div>
           <br />
-          {doneStatus ?  <DoneFrame doneStatus={doneStatus}/> :
-          <Numbers  selectedNumbers={selectedNumbers}
-                    selectNumber={this.selectNumber}
-                    usedNumbers={usedNumbers}
-          />}
+          { doneStatus ?  <DoneFrame doneStatus={doneStatus}/> :
+              <Numbers  selectedNumbers={selectedNumbers}
+                        selectNumber={this.selectNumber}
+                        usedNumbers={usedNumbers}/>
+          }
 			</div>
-    )
-  }
-}
+    );
+  };
+};
+
 class App extends React.Component {
   render() {
     return (
-      <Game />
+      <div>
+        <Game />
+      </div>
     );
-  }
-}
+  };
+};
 
 export default App;
